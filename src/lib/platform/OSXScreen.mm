@@ -24,6 +24,7 @@
 #include "mt/Lock.h"
 #include "mt/Mutex.h"
 #include "mt/Thread.h"
+#include "platform/OSXAutoTypes.h"
 #include "platform/OSXClipboard.h"
 #include "platform/OSXEventQueueBuffer.h"
 #include "platform/OSXKeyState.h"
@@ -33,6 +34,7 @@
 
 #include <AppKit/NSEvent.h>
 #include <AvailabilityMacros.h>
+#include <Carbon/Carbon.h>
 #include <IOKit/hidsystem/event_status_driver.h>
 #include <libproc.h>
 #include <mach-o/dyld.h>
@@ -763,6 +765,62 @@ void OSXScreen::leave()
 
   // now off screen
   m_isOnScreen = false;
+}
+
+void OSXScreen::switchToAsciiInputSource()
+{
+  // TIS API 는 스레드 세이프하지 않으므로 g_tisMutex 로 감싼다.
+  std::lock_guard<std::mutex> lock(g_tisMutex);
+
+  // 돌아왔을 때 복원할 수 있도록 현재 input source 를 기억한다.
+  m_savedInputSourceId.clear();
+  if (AutoTISInputSourceRef current(TISCopyCurrentKeyboardInputSource(), CFRelease); current) {
+    if (void *property = TISGetInputSourceProperty(current.get(), kTISPropertyInputSourceID)) {
+      char buffer[256];
+      if (CFStringGetCString(static_cast<CFStringRef>(property), buffer, sizeof(buffer), kCFStringEncodingUTF8)) {
+        m_savedInputSourceId = buffer;
+      }
+    }
+  }
+
+  // ASCII 입력이 가능한 레이아웃(ABC / U.S. 등)으로 전환해서, 서버에 켜져 있는
+  // 입력기(한글·일본어·중국어)가 클라이언트로 갈 키 입력을 삼키지 않게 한다.
+  if (AutoTISInputSourceRef ascii(TISCopyCurrentASCIICapableKeyboardInputSource(), CFRelease); ascii) {
+    LOG_DEBUG("switching to ascii input source on leave (was: %s)", m_savedInputSourceId.c_str());
+    TISSelectInputSource(ascii.get());
+  }
+}
+
+void OSXScreen::restoreInputSource()
+{
+  if (m_savedInputSourceId.empty()) {
+    return;
+  }
+
+  std::lock_guard<std::mutex> lock(g_tisMutex);
+
+  AutoCFString sourceId(
+      CFStringCreateWithCString(kCFAllocatorDefault, m_savedInputSourceId.c_str(), kCFStringEncodingUTF8), CFRelease
+  );
+  if (sourceId) {
+    const void *keys[] = {kTISPropertyInputSourceID};
+    const void *values[] = {sourceId.get()};
+    AutoCFDictionary filter(
+        CFDictionaryCreate(
+            kCFAllocatorDefault, keys, values, 1, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks
+        ),
+        CFRelease
+    );
+    if (filter) {
+      AutoCFArray list(TISCreateInputSourceList(filter.get(), false), CFRelease);
+      if (list && CFArrayGetCount(list.get()) > 0) {
+        LOG_DEBUG("restoring input source on enter: %s", m_savedInputSourceId.c_str());
+        TISSelectInputSource((TISInputSourceRef)CFArrayGetValueAtIndex(list.get(), 0));
+      }
+    }
+  }
+
+  m_savedInputSourceId.clear();
 }
 
 bool OSXScreen::setClipboard(ClipboardID, const IClipboard *src)

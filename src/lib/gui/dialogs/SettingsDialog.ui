@@ -635,6 +635,31 @@
         </widget>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupInputMethod">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="title">
+          <string>Input method (IME)</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QCheckBox" name="cbSwitchToAsciiOnLeave">
+            <property name="toolTip">
+             <string>When this computer is the server, switch its keyboard to a plain ASCII layout (e.g. ABC) when control moves to another computer, and restore the previous input source when control returns. Helps when an input method (Korean, Japanese, Chinese) would otherwise swallow keystrokes meant for the client.</string>
+            </property>
+            <property name="text">
+             <string>Switch away from input method when leaving (restore on return)</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <widget class="QWidget" name="widgetLanguage" native="true">
          <property name="toolTip">
           <string>Force a language to be used for the GUI.</string>

@@ -188,6 +188,7 @@ void SettingsDialog::accept()
   Settings::setValue(Settings::Log::GuiDebug, ui->cbGuiDebug->isChecked());
   Settings::setValue(Settings::Core::UseWlClipboard, ui->cbUseWlClipboard->isChecked());
   Settings::setValue(Settings::Gui::ShowVersionInTitle, ui->cbShowVersion->isChecked());
+  Settings::setValue(Settings::Server::SwitchToAsciiOnLeave, ui->cbSwitchToAsciiOnLeave->isChecked());
 
   Settings::ProcessMode mode;
   if (ui->groupService->isChecked())
@@ -213,6 +214,7 @@ void SettingsDialog::loadFromConfig()
   ui->cbGuiDebug->setChecked(Settings::value(Settings::Log::GuiDebug).toBool());
   ui->cbUseWlClipboard->setChecked(Settings::value(Settings::Core::UseWlClipboard).toBool());
   ui->cbShowVersion->setChecked(Settings::value(Settings::Gui::ShowVersionInTitle).toBool());
+  ui->cbSwitchToAsciiOnLeave->setChecked(Settings::value(Settings::Server::SwitchToAsciiOnLeave).toBool());
 
   const auto processMode = Settings::value(Settings::Core::ProcessMode).value<Settings::ProcessMode>();
   ui->groupService->setChecked(processMode == Settings::ProcessMode::Service);

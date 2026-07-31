@@ -100,6 +100,7 @@ public:
   {
     inline static const auto ExternalConfig = QStringLiteral("server/externalConfig");
     inline static const auto ExternalConfigFile = QStringLiteral("server/externalConfigFile");
+    inline static const auto SwitchToAsciiOnLeave = QStringLiteral("server/switchToAsciiOnLeave");
   };
 
   // Enums types used in settings
@@ -238,6 +239,7 @@ private:
     , Settings::Security::TlsEnabled
     , Settings::Server::ExternalConfig
     , Settings::Server::ExternalConfigFile
+    , Settings::Server::SwitchToAsciiOnLeave
   };
 
   // When checking the default values this list contains the ones that default to false.
@@ -250,6 +252,7 @@ private:
     , Settings::Core::PreventSleep
     , Settings::Core::UseWlClipboard
     , Settings::Server::ExternalConfig
+    , Settings::Server::SwitchToAsciiOnLeave
     , Settings::Client::InvertYScroll
     , Settings::Client::InvertXScroll
     , Settings::Log::ToFile

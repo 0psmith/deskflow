@@ -135,6 +135,25 @@ public:
   */
   virtual std::string getSecureInputApp() const = 0;
 
+  //! Remember the current input source and switch to an ASCII-capable one
+  /*!
+  Called when leaving a primary screen, so an active input method (e.g. Korean)
+  does not swallow keystrokes meant for a client. Does nothing by default.
+  */
+  virtual void switchToAsciiInputSource()
+  {
+    // do nothing
+  }
+
+  //! Restore the input source remembered by switchToAsciiInputSource()
+  /*!
+  Called when returning to a primary screen. Does nothing by default.
+  */
+  virtual void restoreInputSource()
+  {
+    // do nothing
+  }
+
   //@}
   //! @name accessors
   //@{
