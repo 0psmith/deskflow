@@ -112,12 +112,21 @@ static const KeyEntry s_controlKeys[] = {
     {kKeyNumLock, s_numLockVK},
     {kKeyCapsLock, s_capsLockVK},
 
-    // for Apple Pro JIS Keyboard, map Kana (IME activate) to Henkan (show next
-    // IME conversion), and
-    // Eisu (IME deactivate) to Zenkaku (IME activation toggle) on Windows
-    // Japanese keyboard (OADG109A)
-    {kKeyHenkan, kVK_JIS_Kana},
-    {kKeyZenkaku, kVK_JIS_Eisu},
+    // 한/영·한자 키. macOS 는 HID LANG1/LANG2 를 JIS 카나/영수와 같은 virtual key 로
+    // 보고하므로(한/영 = kVK_JIS_Kana 104, 한자 = kVK_JIS_Eisu 102), upstream 은 이를
+    // 일본어 Henkan/Zenkaku 로 내보낸다. 한국어 IME 는 그 KeyID 를 무시하기 때문에
+    // 클라이언트에서 한/영 전환이 되지 않는다. 한국어용으로 다시 매핑한다.
+    // (Windows 쪽은 VK_HANGUL/VK_HANJA 로 받는다 — MSWindowsKeyState 의 0x115/0x119)
+    //
+    // 주의: m_virtualKeyMap 은 std::map operator[] 로 채워지므로 같은 virtual key 가
+    // 여러 번 나오면 "마지막" 항목이 이긴다. 위 파일 주석의 "first instance" 설명과 다르다.
+    // 그래서 Henkan/Zenkaku 항목을 남겨두지 않고 교체한다.
+    {kKeyHangul, kVK_JIS_Kana},
+    {kKeyHanja, kVK_JIS_Eisu},
+
+    // Caps Lock 을 F19 로 바꿔(Karabiner) macOS "입력 소스 전환" 단축키로 쓰는 구성에서도
+    // 같은 전환이 클라이언트에 전달되도록 F19 도 한/영으로 내보낸다.
+    {kKeyHangul, kVK_F19},
 
     {kKeyMissionControl, s_missionControlVK},
     {kKeyLaunchpad, s_launchpadVK},
