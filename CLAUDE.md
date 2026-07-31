@@ -33,6 +33,15 @@ remote: `origin` = `0psmith/deskflow` (fork), `upstream` = `deskflow/deskflow`.
    - GUI: `설정`(`Cmd+,`) → **고급** 탭 → **"Input method (IME)"** 그룹
      (`서버 설정`(ServerConfigDialog)의 고급 탭과 혼동하기 쉽다 — 별개 다이얼로그다)
 2. **LOCAL BUILD 배지** — 메인 윈도우 상단 바 오른쪽. 릴리스판과 구분하기 위한 로컬 전용 표시.
+3. **한/영·한자 키 매핑** — `OSXKeyState.cpp` 의 `s_controlKeys`. macOS 는 HID LANG1/LANG2 를
+   JIS 카나/영수와 같은 virtual key 로 보고하는데(한/영 = `kVK_JIS_Kana` 104, 한자 =
+   `kVK_JIS_Eisu` 102) upstream 은 이를 일본어 `kKeyHenkan`/`kKeyZenkaku` 로 내보낸다.
+   한국어 IME 가 무시하므로 클라이언트에서 한/영 전환이 안 된다. `kKeyHangul`/`kKeyHanja` 로
+   교체했다. Caps Lock→F19(Karabiner)→"입력 소스 전환" 구성도 쓰므로 `kVK_F19` 도 한/영으로 보낸다.
+   - `m_virtualKeyMap` 은 `std::map operator[]` 라 같은 virtual key 는 **마지막** 항목이 이긴다.
+     파일 상단 주석의 "first instance" 설명과 다르니 항목을 쌓지 말고 교체할 것.
+   - 클라이언트(Windows)는 한국어 레이아웃(LCID `0x0412`)일 때만 `VK_HANGUL` 을 받는다
+     (`MSWindowsKeyState.cpp:1274`).
 
 ## 실사용 환경 (조사 완료 — 다시 물어볼 필요 없음)
 
@@ -51,7 +60,15 @@ remote: `origin` = `0psmith/deskflow` (fork), `upstream` = `deskflow/deskflow`.
   bounding box = x −1440~6720, y −670~1890 (8160×2560). **하단 경계는 y=1890** — 여기 닿아야
   클라이언트로 전환된다. 좌표에 음수가 나오는 것은 정상이다.
 - **프로토콜**: barrier, port 24800, TLS off.
+- **키보드**: NEO65 (US 배열, vendor `65534`/product `21`). Karabiner 로 이 장치에만
+  `left_command ↔ left_option` 스왑이 걸려 있다 — 스페이스 옆 `Alt` 라벨 키를 ⌘ 로 쓰기 위한
+  보정이며 mac 로컬에서는 옳다. 다만 이 보정된 값이 그대로 클라이언트로 나가면 Windows 에서
+  Win/Alt 가 뒤바뀐다. 그래서 **`JEONGSAM` 화면에 `alt = super` / `super = alt`** 를 걸어
+  클라이언트 진입 시점에 되돌린다 (GUI: `서버 설정` → 화면 더블클릭 → **Modifier Keys**).
+  내장 MacBook 키보드도 물리 위치 기준으로는 같은 방향이라 이 설정이 함께 맞는다.
 - 설정 파일: `~/Library/Deskflow/Deskflow.conf` (GUI 설정) / `deskflow-server.conf` (화면 레이아웃).
+  화면별 modifier 는 GUI 가 `Deskflow.conf` 의 `screens\N\modifierArray` 에 저장하고
+  `deskflow-server.conf` 를 매번 다시 생성한다 — **후자를 손으로 고치면 덮어써진다.**
 - Qt 6.11.1 (homebrew `qt`), OpenSSL 3 (homebrew `openssl@3`), CMake 4.x (homebrew).
 
 ## 수정 → 빌드 → 실사용
@@ -115,6 +132,10 @@ open --stdout /tmp/run.log --stderr /tmp/run.err /Applications/Deskflow.app
 - `cursor-freeze-test.c` — `CGAssociateMouseAndMouseCursorPosition(false)` 가 실제로 커서를
   얼리는지 A/B 측정. deskflow 와 무관하게 OS 동작만 검증한다.
 - `display-layout.c` — 디스플레이 origin/크기와 bounding box·중앙 좌표 출력.
+- `key-probe.c` — 누른 키의 virtual keycode·flags·좌우 구분 비트를 출력한다. deskflow 와 같은
+  `kCGSessionEventTap`(listen-only)을 쓰므로 **deskflow 가 실제로 무엇을 보는지**와 일치한다.
+  Karabiner 등 리매퍼를 거친 뒤의 값이 찍히므로 키 매핑 문제는 여기서 시작할 것.
+  `-framework Carbon` 을 함께 넘겨 빌드한다.
 
 ### 자주 걸리는 함정
 
