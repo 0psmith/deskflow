@@ -131,6 +131,7 @@ private:
 
   void createMenuBar();
   void setupTrayIcon();
+  void setupLocalBuildBadge();
   void applyConfig();
   void setTrayIcon();
   void setStatus(const QString &status);

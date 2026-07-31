@@ -91,6 +91,8 @@ MainWindow::MainWindow()
 
   setWindowIcon(QIcon::fromTheme(kRevFqdnName));
 
+  setupLocalBuildBadge();
+
   addDockWidget(Qt::BottomDockWidgetArea, m_logDock);
 
   // Setup Actions
@@ -717,6 +719,22 @@ void MainWindow::setupTrayIcon()
 
   setTrayIcon();
   m_trayIcon->show();
+}
+
+void MainWindow::setupLocalBuildBadge()
+{
+  // 직접 빌드한 앱임을 한눈에 구분하기 위한 배지. upstream 릴리스에는 없는 로컬 전용 표시다.
+  ui->lblLocalBuild->setText(QStringLiteral("LOCAL BUILD"));
+  ui->lblLocalBuild->setToolTip(QStringLiteral("로컬 빌드 · IME 전환 패치 (PR #9898)\n%1").arg(kDisplayVersion));
+  ui->lblLocalBuild->setStyleSheet(QStringLiteral("QLabel {"
+                                                  " color: #ff9f0a;"
+                                                  " background-color: rgba(255, 159, 10, 0.16);"
+                                                  " border: 1px solid rgba(255, 159, 10, 0.40);"
+                                                  " border-radius: 3px;"
+                                                  " padding: 1px 6px;"
+                                                  " font-size: 10px;"
+                                                  " font-weight: 600;"
+                                                  "}"));
 }
 
 void MainWindow::applyConfig()
