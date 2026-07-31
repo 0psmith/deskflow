@@ -52,3 +52,7 @@ CMakeFiles/*
 
 # 이 fork 는 개인용 로컬 빌드 브랜치이므로 CLAUDE.md 를 추적한다 (upstream 은 무시함)
 !/CLAUDE.md
+
+# local: diagnostics 컴파일 산출물
+/local-build/diagnostics/*
+!/local-build/diagnostics/*.c
